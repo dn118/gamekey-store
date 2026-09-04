@@ -143,10 +143,10 @@ export default function Storefront() {
         </div></article>)}</div>
     </section>
 
-    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}><DialogContent className="order-dialog"><DialogHeader><DialogTitle>Заказ {order?.id}</DialogTitle><DialogDescription>Оплата эмулируется тестовым вебхуком. Реального списания нет.</DialogDescription></DialogHeader>
+    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}><DialogContent className="order-dialog"><DialogHeader><DialogTitle className="order-title">Заказ {order?.id}</DialogTitle><DialogDescription>Оплата эмулируется тестовым вебхуком. Реального списания нет.</DialogDescription></DialogHeader>
       {order && <div className="order-summary"><div><span>Статус</span><strong className={`status status-${order.status}`}>{statusLabels[order.status] ?? order.status}</strong></div><div><span>К оплате</span><strong>{order.amount} {order.currency}</strong></div>{order.promo_code && <div><span>Промокод</span><strong>{order.promo_code} · −{order.discount_amount} ₽</strong></div>}{order.code && <div className="delivered-code"><span>Ваш ключ</span><code>{order.code}</code></div>}</div>}
       {error && <p className="error-banner" role="alert">{error}</p>}
-      <DialogFooter>{order?.status === "created" && <><Button variant="outline" onClick={() => pay("failed")} disabled={busy}>Неуспешная оплата</Button><Button onClick={() => pay("paid")} disabled={busy}>{busy ? "Обрабатываем…" : "Оплатить успешно"}</Button></>}{order && <Button variant="outline" asChild><a href={`/orders/${order.id}`}>Страница статуса</a></Button>}</DialogFooter>
+      <DialogFooter className="order-actions">{order?.status === "created" && <><Button variant="outline" onClick={() => pay("failed")} disabled={busy}>Неуспешная оплата</Button><Button onClick={() => pay("paid")} disabled={busy}>{busy ? "Обрабатываем…" : "Оплатить успешно"}</Button></>}{order && <Button variant="outline" asChild><a href={`/orders/${order.id}`}>Страница статуса</a></Button>}</DialogFooter>
     </DialogContent></Dialog>
   </main>;
 }
