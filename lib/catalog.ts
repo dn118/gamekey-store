@@ -13,11 +13,18 @@ export const CATALOG = [
   { sku: "GIFT-ROBLOX-800", name: "Roblox 800 Robux", type: "giftcard", price: 890, currency: "RUB" },
 ] as const;
 
-// Explicitly non-redeemable demo inventory. Production keys must come from a
-// secret store or supplier API and must never be committed to source control.
-export const KEY_POOL = Array.from(
-  { length: 50 },
-  (_, index) => `DEMO-KEY-${String(index + 1).padStart(4, "0")}`,
+// 50 explicitly non-redeemable demo keys: ten for each product shown on the
+// storefront. Production keys must come from a secret store or supplier API.
+const DEMO_STOREFRONT_SKUS = ["STEAM-TOPUP-500", "KEY-CS2-PRIME", "KEY-GTA5", "KEY-EFT", "SUB-DISCORD-1M"];
+
+export const KEY_POOL = DEMO_STOREFRONT_SKUS.flatMap((sku) =>
+  Array.from(
+    { length: 10 },
+    (_, index) => ({
+      code: `DEMO-${sku}-${String(index + 1).padStart(2, "0")}`,
+      sku,
+    }),
+  ),
 );
 
 export const PROMOS = [
