@@ -11,6 +11,8 @@ test("contains the requested storefront and five interactions", async () => {
   assert.match(source, /setCurrency/);
   assert.match(source, /service/);
   assert.match(source, /product-card/);
+  assert.match(source, /typeof crypto\.randomUUID === "function"/);
+  assert.doesNotMatch(source, /Демо: первый товар/);
 });
 
 test("database migration enforces single delivery", async () => {
@@ -27,4 +29,11 @@ test("race reproduction script covers acceptance scenarios", async () => {
   assert.match(script, /LIMIT3/);
   assert.match(script, /out_of_stock/);
   assert.match(script, /assignedKeys\.length, 1/);
+  assert.match(script, /storefrontSkus/);
+});
+
+test("payment webhook acknowledges before background delivery", async () => {
+  const source = await readFile(new URL("../app/api/webhooks/payment/route.ts", import.meta.url), "utf8");
+  assert.match(source, /storePaymentEvent/);
+  assert.match(source, /waitUntil\(processPaymentEvent/);
 });
