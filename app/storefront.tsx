@@ -1,20 +1,46 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, Gamepad2, Grid2X2, Heart, Search, ShoppingBag, UserRound } from "lucide-react";
+import {
+  Bot,
+  Box,
+  ChevronLeft,
+  ChevronRight,
+  Gamepad2,
+  Grid2X2,
+  Heart,
+  MessageCircle,
+  Search,
+  Send,
+  ShoppingBag,
+  Smartphone,
+  Store,
+  UserRound,
+} from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 type Order = { id: string; amount: number; currency: string; status: string; code: string | null; promo_code: string | null; discount_amount: number };
 
-const services = [["Steam", "ST"], ["Telegram", "TG"], ["Roblox", "R"], ["Brawl Stars", "BS"], ["PUBG Mobile", "P"], ["App Store", "A"], ["ChatGPT", "AI"], ["PlayStation", "PS"], ["TikTok", "TT"], ["Mobile Legends", "ML"]];
+const services = [
+  { name: "Steam", icon: Gamepad2 },
+  { name: "Telegram", icon: Send },
+  { name: "Roblox", icon: Box },
+  { name: "Brawl Stars", icon: Gamepad2 },
+  { name: "PUBG Mobile", icon: Smartphone },
+  { name: "App Store", icon: Store },
+  { name: "ChatGPT", icon: Bot },
+  { name: "PlayStation", icon: Gamepad2 },
+  { name: "TikTok", icon: MessageCircle },
+  { name: "Mobile Legends", icon: Smartphone },
+];
 const products = [
-  { sku: "STEAM-TOPUP-500", name: "Пополнение Steam 500 ₽", price: 500, old: 690, tone: "lime" },
-  { sku: "KEY-CS2-PRIME", name: "CS2 Prime Status ключ", price: 1290, old: 1590, tone: "blue" },
-  { sku: "KEY-GTA5", name: "GTA V ключ активации", price: 1990, old: 2390, tone: "orange" },
-  { sku: "KEY-EFT", name: "Escape from Tarkov ключ", price: 3490, old: 3990, tone: "purple" },
-  { sku: "SUB-DISCORD-1M", name: "Discord Nitro 1 месяц", price: 399, old: 590, tone: "pink" },
+  { sku: "STEAM-TOPUP-500", name: "Пополнение Steam 500 ₽", price: 500, old: 690, tone: "lime", art: Gamepad2 },
+  { sku: "KEY-CS2-PRIME", name: "CS2 Prime Status ключ", price: 1290, old: 1590, tone: "blue", art: Search },
+  { sku: "KEY-GTA5", name: "GTA V ключ активации", price: 1990, old: 2390, tone: "orange", art: Gamepad2 },
+  { sku: "KEY-EFT", name: "Escape from Tarkov ключ", price: 3490, old: 3990, tone: "purple", art: Box },
+  { sku: "SUB-DISCORD-1M", name: "Discord Nitro 1 месяц", price: 399, old: 590, tone: "pink", art: MessageCircle },
 ];
 const slides = [
   { kicker: "Новые релизы", title: "Играй сегодня", text: "Ключи, пополнения и подписки с моментальной выдачей", accent: "#b9ff35" },
@@ -22,6 +48,13 @@ const slides = [
   { kicker: "Скидка на первый заказ", title: "WELCOME10", text: "Скидка рассчитывается на сервере", accent: "#ff7e4d" },
 ];
 const statusLabels: Record<string, string> = { created: "Ожидает оплаты", paid: "Оплачен", delivering: "Получаем ключ", delivered: "Ключ выдан", payment_failed: "Оплата отклонена", out_of_stock: "Оплачен, ожидает пополнения", delivery_failed: "Ошибка выдачи — можно повторить" };
+
+function uniqueToken(prefix: string) {
+  const uuid = typeof crypto.randomUUID === "function"
+    ? crypto.randomUUID()
+    : `${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}_${Math.random().toString(36).slice(2)}`;
+  return `${prefix}_${uuid}`;
+}
 
 export default function Storefront() {
   const [catalogOpen, setCatalogOpen] = useState(false);
@@ -34,6 +67,7 @@ export default function Storefront() {
   const [error, setError] = useState("");
   const catalogRef = useRef<HTMLDivElement>(null);
   const purchaseRef = useRef(false);
+  const purchaseTokens = useRef<Record<string, string>>({});
 
   useEffect(() => { const timer = window.setInterval(() => setSlide((value) => (value + 1) % slides.length), 5000); return () => window.clearInterval(timer); }, []);
   useEffect(() => {
@@ -45,10 +79,12 @@ export default function Storefront() {
     if (purchaseRef.current) return;
     purchaseRef.current = true; setBusy(true); setError("");
     try {
-      const response = await fetch("/api/orders", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ client_token: `buy_${crypto.randomUUID()}`, sku, promo_code: promo || undefined }) });
+      const clientToken = purchaseTokens.current[sku] ?? uniqueToken("buy");
+      purchaseTokens.current[sku] = clientToken;
+      const response = await fetch("/api/orders", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ client_token: clientToken, sku, promo_code: promo || undefined }) });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Не удалось создать заказ");
-      setOrder(data.order); setDialogOpen(true);
+      setOrder(data.order); setDialogOpen(true); delete purchaseTokens.current[sku];
     } catch (caught) { setError(caught instanceof Error ? caught.message : "Не удалось создать заказ"); }
     finally { setBusy(false); purchaseRef.current = false; }
   }
@@ -85,8 +121,8 @@ export default function Storefront() {
     </section>
 
     <section className="services" aria-label="Сервисы">
-      {services.map(([name, short], index) => <button className={`service service-${index}`} key={name}><span>{short}</span><strong>{name}</strong></button>)}
-      <button className="service service-more"><span>+841</span><strong>ещё</strong></button>
+      {services.map(({ name, icon: Icon }, index) => <button className={`service service-${index}`} key={name}><span><Icon /></span><strong>{name}</strong></button>)}
+      <button className="service service-more"><span><Grid2X2 /><small>841</small></span><strong>ещё</strong></button>
     </section>
 
     <section className="steam-topup">
@@ -101,9 +137,9 @@ export default function Storefront() {
       <div className="section-heading"><div><h2>Популярные товары</h2><p>Моментальная выдача после подтверждения оплаты</p></div><label className="promo-field"><span>Промокод</span><Input value={promo} onChange={(event) => setPromo(event.target.value.toUpperCase())} placeholder="WELCOME10" /></label></div>
       {error && <p className="error-banner" role="alert">{error}</p>}
       <div className="product-grid">{products.map((product) => <article className="product-card" key={product.sku}>
-        <div className={`product-cover cover-${product.tone}`}><span>GAMEKEY</span><strong>{product.name.split(" ")[0]}</strong><small>DIGITAL EDITION</small></div>
+        <div className={`product-cover cover-${product.tone}`}><product.art className="product-art" /><span>GAMEKEY</span><strong>{product.name.split(" ")[0]}</strong><small>DIGITAL EDITION</small></div>
         <div className="product-body"><span className="instant">⚡ МОМЕНТАЛЬНО</span><h3>{product.name}</h3><div className="price"><strong>{product.price.toLocaleString("ru-RU")} ₽</strong><del>{product.old.toLocaleString("ru-RU")} ₽</del></div>
-          <Button className="buy-button" onClick={() => buy(product.sku)} disabled={busy || product.sku !== "STEAM-TOPUP-500"}>{product.sku === "STEAM-TOPUP-500" ? <><ShoppingBag /> Купить</> : "Демо: первый товар"}</Button>
+          <Button className="buy-button" onClick={() => buy(product.sku)} disabled={busy}><ShoppingBag /> Купить</Button>
         </div></article>)}</div>
     </section>
 
