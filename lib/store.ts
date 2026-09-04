@@ -56,8 +56,14 @@ function clampInt(value: unknown, fallback = 0) {
 
 export async function ensureSeedData() {
   const database = db();
-  const existing = await database.prepare("SELECT sku FROM products LIMIT 1").first();
-  if (existing) return;
+  const existing = (await database.prepare(`SELECT
+    (SELECT COUNT(*) FROM products) AS products,
+    (SELECT COUNT(*) FROM promo_codes) AS promos,
+    (SELECT COUNT(*) FROM provider_settings) AS providers,
+    EXISTS(SELECT 1 FROM inventory_keys WHERE code = ?) AS current_inventory`).bind(KEY_POOL[0].code).first()) as {
+      products: number; promos: number; providers: number; current_inventory: number;
+    } | null;
+  if (existing && existing.products >= CATALOG.length && existing.promos >= PROMOS.length && existing.providers >= 2 && existing.current_inventory === 1) return;
 
   const statements = [
     ...CATALOG.map((product) =>
@@ -65,10 +71,10 @@ export async function ensureSeedData() {
         .prepare("INSERT OR IGNORE INTO products (sku, name, type, price, currency) VALUES (?, ?, ?, ?, ?)")
         .bind(product.sku, product.name, product.type, product.price, product.currency),
     ),
-    ...KEY_POOL.map((code, index) =>
+    ...KEY_POOL.map(({ code, sku }, index) =>
       database
-        .prepare("INSERT OR IGNORE INTO inventory_keys (code, sku, provider) VALUES (?, 'STEAM-TOPUP-500', ?)")
-        .bind(code, index % 2 === 0 ? "A" : "B"),
+        .prepare("INSERT OR IGNORE INTO inventory_keys (code, sku, provider) VALUES (?, ?, ?)")
+        .bind(code, sku, index % 2 === 0 ? "A" : "B"),
     ),
     ...PROMOS.map((promo) =>
       database
@@ -249,21 +255,26 @@ export async function issueOrder(orderId: string, recovery = false) {
   return getOrder(claimed.id);
 }
 
-export async function acceptPaymentEvent(input: PaymentEventInput) {
+export async function storePaymentEvent(input: PaymentEventInput) {
   const database = db();
   if (!input.event_id || !input.order_id || !["paid", "failed"].includes(input.status)) throw new Error("Некорректный вебхук");
   if (!Number.isInteger(input.amount) || input.amount < 0 || !input.currency || !input.created_at) throw new Error("Некорректный вебхук");
-  await database
+  const inserted = await database
     .prepare(`INSERT OR IGNORE INTO payment_events
       (event_id, order_id, status, amount, currency, event_created_at, received_at)
       VALUES (?, ?, ?, ?, ?, ?, ?)`)
     .bind(input.event_id, input.order_id, input.status, input.amount, input.currency, input.created_at, now())
     .run();
-  const result = await processPaymentEvent(input.event_id);
-  return { accepted: true, duplicate: result === "duplicate", result };
+  return { accepted: true, duplicate: (inserted.meta?.changes ?? 0) === 0 };
 }
 
-async function processPaymentEvent(eventId: string) {
+export async function acceptPaymentEvent(input: PaymentEventInput) {
+  const stored = await storePaymentEvent(input);
+  const result = await processPaymentEvent(input.event_id);
+  return { ...stored, duplicate: stored.duplicate || result === "duplicate", result };
+}
+
+export async function processPaymentEvent(eventId: string) {
   const database = db();
   const event = (await database.prepare("SELECT * FROM payment_events WHERE event_id = ?").bind(eventId).first()) as (PaymentEventInput & { processed_at: string | null; event_created_at: string }) | null;
   if (!event) return "missing";
