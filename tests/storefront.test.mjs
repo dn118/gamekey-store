@@ -15,6 +15,17 @@ test("contains the requested storefront and five interactions", async () => {
   assert.doesNotMatch(source, /Демо: первый товар/);
 });
 
+test("order dialog stays inside narrow and zoomed viewports", async () => {
+  const source = await readFile(new URL("../app/storefront.tsx", import.meta.url), "utf8");
+  const styles = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.match(source, /className="order-actions"/);
+  assert.match(source, /className="order-title"/);
+  assert.match(styles, /\.order-dialog[^}]*calc\(100vw - 32px\)/s);
+  assert.match(styles, /\.order-title[^}]*overflow-wrap:\s*anywhere/s);
+  assert.match(styles, /\.order-actions[^}]*repeat\(3, minmax\(0, 1fr\)\)/s);
+  assert.match(styles, /@media \(max-width: 720px\)[\s\S]*?\.order-actions\s*\{\s*grid-template-columns:\s*1fr/s);
+});
+
 test("database migration enforces single delivery", async () => {
   const sql = await readFile(new URL("../drizzle/0000_charming_lily_hollister.sql", import.meta.url), "utf8");
   assert.match(sql, /inventory_keys_assigned_order_id_unique/);
