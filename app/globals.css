@@ -62,7 +62,8 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
 .hero-mark svg { width: 130px; height: 130px; fill: var(--slide-accent); stroke-width: 1.4; }
 .hero-controls { position: absolute; z-index: 3; right: 18px; top: 18px; display: flex; background: #fff; border-radius: 12px; overflow: hidden; }
 .hero-controls button { width: 42px; height: 38px; border: 0; background: #fff; display: grid; place-items: center; }
-.hero-controls svg { width: 16px; }
+.hero-controls button { color: #111318; }
+.hero-controls svg { width: 16px; height: 16px; stroke-width: 2.4; }
 .hero-dots { position: absolute; z-index: 3; right: 24px; bottom: 18px; display: flex; gap: 6px; }
 .hero-dots button { width: 26px; height: 4px; border: 0; border-radius: 99px; background: rgba(255,255,255,.32); padding: 0; }
 .hero-dots button.active { background: var(--slide-accent); }
@@ -71,6 +72,9 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
 .service { min-width: 0; border: 0; background: transparent; padding: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; transition: transform .2s ease, filter .2s ease; }
 .service:hover { transform: translateY(-5px) scale(1.03); filter: saturate(1.15); }
 .service span { width: 55px; height: 55px; display: grid; place-items: center; border-radius: 15px; background: linear-gradient(145deg, #172331, #0a0e13); color: white; font-weight: 850; box-shadow: inset 0 0 0 1px rgba(255,255,255,.1), 0 8px 20px rgba(30,43,58,.18); }
+.service span svg { width: 27px; height: 27px; stroke-width: 2.1; }
+.service-more span { position: relative; }
+.service-more span small { position: absolute; right: 5px; bottom: 4px; min-width: 21px; padding: 1px 3px; border-radius: 5px; background: #fff; color: #687180; font-size: 8px; line-height: 1.2; }
 .service strong { width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
 .service-1 span { background: linear-gradient(145deg, #54b7ed, #2086c8); }.service-2 span { background: linear-gradient(145deg, #4388ff, #4b3ac7); }.service-3 span { background: linear-gradient(145deg, #ff57ce, #7c29ff); }
 .service-4 span { background: linear-gradient(145deg, #9aaab4, #263d4f); }.service-5 span { background: linear-gradient(145deg, #61c6ff, #247fd2); }.service-6 span { background: linear-gradient(145deg, #31b987, #08745f); }
@@ -94,6 +98,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
 .product-card:hover { transform: translateY(-7px); border-color: #b7bec9; box-shadow: 0 18px 36px rgba(22,27,36,.14); }
 .product-cover { height: 142px; position: relative; display: flex; flex-direction: column; justify-content: flex-end; padding: 17px; color: white; overflow: hidden; background: linear-gradient(135deg, #303949, #12161e); }
 .product-cover::after { content: ""; position: absolute; width: 130px; height: 130px; right: -28px; top: -38px; border-radius: 32px; transform: rotate(23deg); background: rgba(255,255,255,.14); box-shadow: -45px 56px 0 rgba(255,255,255,.07); }
+.product-art { position: absolute; right: 14px; top: 20px; width: 70px; height: 70px; z-index: 1; opacity: .42; stroke-width: 1.25; filter: drop-shadow(0 10px 15px rgba(0,0,0,.22)); }
 .product-cover span, .product-cover strong, .product-cover small { position: relative; z-index: 1; }.product-cover span { font-size: 10px; letter-spacing: .18em; opacity: .72; }.product-cover strong { font-size: 23px; text-transform: uppercase; letter-spacing: -.03em; }.product-cover small { font-size: 9px; color: #dce2e9; }
 .cover-lime { background: linear-gradient(135deg, #4e6325, #141a0d); }.cover-blue { background: linear-gradient(135deg, #1c5f9a, #0c1d2e); }.cover-orange { background: linear-gradient(135deg, #a8502d, #25130d); }.cover-purple { background: linear-gradient(135deg, #644390, #1b102b); }.cover-pink { background: linear-gradient(135deg, #b84981, #2e1020); }
 .product-body { padding: 14px; }.instant { font-size: 9px; color: #e55a36; font-weight: 850; }.product-body h3 { height: 38px; margin: 7px 0 10px; font-size: 13px; line-height: 1.4; }.price { display: flex; align-items: baseline; gap: 8px; margin-bottom: 12px; }.price strong { color: #63a636; font-size: 18px; }.price del { color: #a4a9b1; font-size: 11px; }
