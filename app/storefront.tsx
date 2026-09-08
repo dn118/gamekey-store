@@ -93,7 +93,7 @@ export default function Storefront() {
     const timer = window.setTimeout(() => {
       const params = new URLSearchParams(window.location.search);
       setQuery(params.get("q") ?? ""); setTypeFilter(params.get("type") ?? ""); setMaxPrice(params.get("max_price") ?? "");
-      const savedOrder = params.get("order") ?? window.localStorage.getItem("gamekey:last-order");
+      const savedOrder = params.get("order") ?? window.sessionStorage.getItem("gamekey:last-order");
       if (savedOrder) fetch(`/api/orders/${savedOrder}`, { cache: "no-store" }).then((response) => response.json()).then((data) => {
         if (data.order) { setOrder(data.order); setDialogOpen(true); }
       }).catch(() => undefined);
@@ -158,13 +158,13 @@ export default function Storefront() {
     if (purchaseRef.current) return;
     purchaseRef.current = true; setBusy(true); setError("");
     try {
-      const clientToken = purchaseTokens.current[sku] ?? window.localStorage.getItem(`gamekey:purchase:${sku}`) ?? uniqueToken("buy");
+      const clientToken = purchaseTokens.current[sku] ?? window.sessionStorage.getItem(`gamekey:purchase:${sku}`) ?? uniqueToken("buy");
       purchaseTokens.current[sku] = clientToken;
-      window.localStorage.setItem(`gamekey:purchase:${sku}`, clientToken);
+      window.sessionStorage.setItem(`gamekey:purchase:${sku}`, clientToken);
       const response = await fetch("/api/orders", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ client_token: clientToken, sku, promo_code: promo || undefined }) });
       const data = await response.json();
-      if (!response.ok) { if (data.code === "sold_out") window.localStorage.removeItem(`gamekey:purchase:${sku}`); throw new Error(data.error || "Не удалось создать заказ"); }
-      setOrder(data.order); setQuoteAmount(data.order.amount); setDialogOpen(true); delete purchaseTokens.current[sku]; window.localStorage.removeItem(`gamekey:purchase:${sku}`); window.localStorage.setItem("gamekey:last-order", data.order.id);
+      if (!response.ok) { if (data.code === "sold_out") window.sessionStorage.removeItem(`gamekey:purchase:${sku}`); throw new Error(data.error || "Не удалось создать заказ"); }
+      setOrder(data.order); setQuoteAmount(data.order.amount); setDialogOpen(true); delete purchaseTokens.current[sku]; window.sessionStorage.removeItem(`gamekey:purchase:${sku}`); window.sessionStorage.setItem("gamekey:last-order", data.order.id);
       const params = new URLSearchParams(window.location.search); params.set("order", data.order.id); window.history.replaceState({}, "", `${window.location.pathname}?${params}`);
     } catch (caught) { setError(caught instanceof Error ? caught.message : "Не удалось создать заказ"); }
     finally { setBusy(false); purchaseRef.current = false; }

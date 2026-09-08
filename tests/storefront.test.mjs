@@ -16,6 +16,8 @@ test("contains the requested storefront and five interactions", async () => {
   assert.match(source, /new AbortController\(\)/);
   assert.match(source, /reservation-timer/);
   assert.match(source, /window\.history\.replaceState/);
+  assert.match(source, /window\.sessionStorage/);
+  assert.doesNotMatch(source, /window\.localStorage/);
   assert.doesNotMatch(source, /Демо: первый товар/);
 });
 
