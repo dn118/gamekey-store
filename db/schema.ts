@@ -6,6 +6,7 @@ export const products = sqliteTable("products", {
   type: text("type").notNull(),
   price: integer("price").notNull(),
   currency: text("currency").notNull().default("RUB"),
+  updatedAt: text("updated_at").notNull().default("1970-01-01T00:00:00.000Z"),
 });
 
 export const orders = sqliteTable("orders", {
@@ -13,15 +14,28 @@ export const orders = sqliteTable("orders", {
   clientToken: text("client_token").notNull().unique(),
   sku: text("sku").notNull(),
   amount: integer("amount").notNull(),
+  unitPrice: integer("unit_price").notNull().default(0),
   currency: text("currency").notNull(),
   status: text("status").notNull().default("created"),
   paymentStatus: text("payment_status"),
   paymentEventAt: text("payment_event_at"),
   promoCode: text("promo_code"),
   discountAmount: integer("discount_amount").notNull().default(0),
+  reservationExpiresAt: text("reservation_expires_at"),
   deliveryRequestId: text("delivery_request_id").unique(),
   provider: text("provider"),
   code: text("code").unique(),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull(),
+});
+
+export const reservations = sqliteTable("reservations", {
+  orderId: text("order_id").primaryKey(),
+  clientToken: text("client_token").notNull().unique(),
+  sku: text("sku").notNull(),
+  inventoryCode: text("inventory_code").unique(),
+  status: text("status").notNull().default("active"),
+  expiresAt: text("expires_at").notNull(),
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull(),
 });
@@ -45,6 +59,8 @@ export const inventoryKeys = sqliteTable("inventory_keys", {
   assignedOrderId: text("assigned_order_id").unique(),
   assignedRequestId: text("assigned_request_id").unique(),
   assignedAt: text("assigned_at"),
+  reservedOrderId: text("reserved_order_id").unique(),
+  reservedUntil: text("reserved_until"),
 });
 
 export const deliveryAttempts = sqliteTable("delivery_attempts", {

@@ -72,9 +72,9 @@ const promoResults = await Promise.all(Array.from({ length: 10 }, (_, index) => 
 assert.equal(promoResults.filter(({ response }) => response.status === 201).length, 3, "LIMIT3 нельзя применить больше трёх раз");
 
 await reset();
-await reset("drain");
 const recoveryId = `ord_recovery_${Date.now()}`;
 await createOrder({ token: `token_${recoveryId}`, orderId: recoveryId });
+await reset("drain");
 await request(`/api/orders/${recoveryId}/pay`, { method: "POST", headers: jsonHeaders, body: JSON.stringify({ status: "paid" }) });
 let recovery = await request(`/api/orders/${recoveryId}`);
 assert.equal(recovery.body.order.status, "out_of_stock");

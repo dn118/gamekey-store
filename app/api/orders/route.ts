@@ -7,6 +7,7 @@ export async function POST(request: Request) {
     const result = await createOrder({ clientToken: body.client_token, sku: body.sku, promoCode: body.promo_code, orderId: body.order_id });
     return Response.json(result, { status: result.replayed ? 200 : 201 });
   } catch (error) {
-    return Response.json({ error: error instanceof Error ? error.message : "Не удалось создать заказ" }, { status: 400 });
+    const message = error instanceof Error ? error.message : "Не удалось создать заказ";
+    return Response.json({ error: message, code: message.includes("раскупили") ? "sold_out" : "invalid_order" }, { status: message.includes("раскупили") ? 409 : 400 });
   }
 }

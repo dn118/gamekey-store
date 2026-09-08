@@ -13,6 +13,7 @@
     "test": "npm run build && node --test tests/*.test.mjs",
     "test:race": "npm run build && node scripts/run-race-local.mjs",
     "test:race:remote": "node scripts/race-test.mjs",
+    "test:stage2": "npm run build && node --test tests/stage2-integration.test.mjs",
     "lint": "bash scripts/sites-env.sh -- eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "bash scripts/sites-env.sh -- drizzle-kit generate",
     "db:local": "bash scripts/sites-env.sh -- wrangler d1 migrations apply site-creator-d1 --local --config wrangler.local.jsonc"

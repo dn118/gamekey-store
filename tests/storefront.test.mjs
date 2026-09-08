@@ -12,6 +12,10 @@ test("contains the requested storefront and five interactions", async () => {
   assert.match(source, /service/);
   assert.match(source, /product-card/);
   assert.match(source, /typeof crypto\.randomUUID === "function"/);
+  assert.match(source, /new EventSource\("\/api\/catalog\/stream"\)/);
+  assert.match(source, /new AbortController\(\)/);
+  assert.match(source, /reservation-timer/);
+  assert.match(source, /window\.history\.replaceState/);
   assert.doesNotMatch(source, /Демо: первый товар/);
 });
 
@@ -28,10 +32,20 @@ test("order dialog stays inside narrow and zoomed viewports", async () => {
 
 test("database migration enforces single delivery", async () => {
   const sql = await readFile(new URL("../drizzle/0000_charming_lily_hollister.sql", import.meta.url), "utf8");
+  const reservationSql = await readFile(new URL("../drizzle/0001_harsh_doctor_faustus.sql", import.meta.url), "utf8");
   assert.match(sql, /inventory_keys_assigned_order_id_unique/);
   assert.match(sql, /inventory_keys_assigned_request_id_unique/);
   assert.match(sql, /orders_code_unique/);
   assert.match(sql, /payment_events.*PRIMARY KEY/s);
+  assert.match(reservationSql, /reservations_client_token_unique/);
+  assert.match(reservationSql, /reservations_inventory_code_unique/);
+  assert.match(reservationSql, /inventory_keys_reserved_order_id_unique/);
+});
+
+test("payment emulator uses one deterministic event per paid checkout", async () => {
+  const source = await readFile(new URL("../app/api/orders/[id]/pay/route.ts", import.meta.url), "utf8");
+  assert.match(source, /evt_checkout_\$\{order\.id\}/);
+  assert.match(source, /replayed: true/);
 });
 
 test("race reproduction script covers acceptance scenarios", async () => {
