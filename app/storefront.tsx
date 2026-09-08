@@ -193,7 +193,7 @@ export default function Storefront() {
         {catalogOpen && <CatalogMenu />}
       </div>
       <label className="search-box"><span className="sr-only">Поиск</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Игра, приложение или услуга..." /><Heart className="search-heart" /><span className="search-action"><Search /></span></label>
-      <button className="profile-button" aria-label="Профиль"><UserRound /></button>
+      <a className="profile-button" href="/admin" aria-label="Открыть админку"><UserRound /><span>Админка</span></a>
     </header>
 
     <section className="hero" style={{ "--slide-accent": activeSlide.accent } as React.CSSProperties}>

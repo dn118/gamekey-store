@@ -101,6 +101,7 @@ export async function releaseExpiredReservations() {
     database.prepare("UPDATE reservations SET status = 'expired', updated_at = ? WHERE status = 'active' AND expires_at <= ?").bind(timestamp, timestamp),
     database.prepare(`UPDATE inventory_keys SET reserved_order_id = NULL, reserved_until = NULL
       WHERE reserved_order_id IN (SELECT order_id FROM reservations WHERE status IN ('expired','released','fulfilled'))`),
+    database.prepare("UPDATE reservations SET inventory_code = NULL, updated_at = ? WHERE status IN ('expired','released') AND inventory_code IS NOT NULL").bind(timestamp),
     database.prepare(`UPDATE orders SET status = 'reservation_expired', updated_at = ?
       WHERE status = 'created' AND id IN (SELECT order_id FROM reservations WHERE status = 'expired')`).bind(timestamp),
   ]);
@@ -201,6 +202,7 @@ export async function createOrder(input: {
       await database.batch([
         database.prepare("UPDATE reservations SET status = 'released', updated_at = ? WHERE client_token = ? AND status = 'active'").bind(now(), clientToken),
         database.prepare("UPDATE inventory_keys SET reserved_order_id = NULL, reserved_until = NULL WHERE reserved_order_id = ?").bind(reservation.order_id),
+        database.prepare("UPDATE reservations SET inventory_code = NULL, updated_at = ? WHERE order_id = ? AND status = 'released'").bind(now(), reservation.order_id),
       ]);
       throw new Error("Лимит использований промокода исчерпан");
     }
@@ -413,6 +415,7 @@ export async function processPaymentEvent(eventId: string) {
         .bind(event.event_created_at, now(), order.id, event.event_created_at),
       database.prepare("UPDATE reservations SET status = 'released', updated_at = ? WHERE order_id = ? AND status = 'active'").bind(now(), order.id),
       database.prepare("UPDATE inventory_keys SET reserved_order_id = NULL, reserved_until = NULL WHERE reserved_order_id = ? AND assigned_order_id IS NULL").bind(order.id),
+      database.prepare("UPDATE reservations SET inventory_code = NULL, updated_at = ? WHERE order_id = ? AND status = 'released'").bind(now(), order.id),
     ]);
   }
   await database.prepare("UPDATE payment_events SET processed_at = ?, processing_result = 'processed' WHERE event_id = ? AND processed_at IS NULL").bind(now(), eventId).run();

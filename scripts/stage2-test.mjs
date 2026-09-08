@@ -55,6 +55,10 @@ const expired = await request(`/api/orders/${expiryId}`);
 assert.equal(expired.body.order.status, "reservation_expired");
 const afterExpiry = await request("/api/catalog");
 assert.equal(afterExpiry.body.products.find((item) => item.sku === "STEAM-TOPUP-500").available, 1);
+const afterExpiryOrder = await create(`after-expiry-${Date.now()}`, `ord_after_expiry_${Date.now()}`);
+assert.equal(afterExpiryOrder.response.status, 201);
+const afterExpiryPaid = await pay(afterExpiryOrder.body.order.id);
+assert.equal(afterExpiryPaid.body.order.status, "delivered");
 
 await reset();
 await setProduct(500, 2);
