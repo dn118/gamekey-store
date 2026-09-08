@@ -78,6 +78,7 @@ export default function Storefront() {
   const [offers, setOffers] = useState<SearchOffer[]>([]);
   const [offerTotal, setOfferTotal] = useState(0);
   const [searching, setSearching] = useState(false);
+  const [filtersReady, setFiltersReady] = useState(false);
   const catalogRef = useRef<HTMLDivElement>(null);
   const purchaseRef = useRef(false);
   const purchaseTokens = useRef<Record<string, string>>({});
@@ -93,6 +94,7 @@ export default function Storefront() {
     const timer = window.setTimeout(() => {
       const params = new URLSearchParams(window.location.search);
       setQuery(params.get("q") ?? ""); setTypeFilter(params.get("type") ?? ""); setMaxPrice(params.get("max_price") ?? "");
+      setFiltersReady(true);
       const savedOrder = params.get("order") ?? window.sessionStorage.getItem("gamekey:last-order");
       if (savedOrder) fetch(`/api/orders/${savedOrder}`, { cache: "no-store" }).then((response) => response.json()).then((data) => {
         if (data.order) { setOrder(data.order); setDialogOpen(true); }
@@ -134,6 +136,7 @@ export default function Storefront() {
   }, [order, liveProducts]);
 
   useEffect(() => {
+    if (!filtersReady) return;
     const controller = new AbortController();
     const sequence = ++searchSequence.current;
     const params = new URLSearchParams(window.location.search);
@@ -152,7 +155,7 @@ export default function Storefront() {
       finally { if (sequence === searchSequence.current) setSearching(false); }
     }, 120);
     return () => { controller.abort(); window.clearTimeout(timer); };
-  }, [query, typeFilter, maxPrice, liveProducts]);
+  }, [query, typeFilter, maxPrice, liveProducts, filtersReady]);
 
   async function buy(sku: string) {
     if (purchaseRef.current) return;
